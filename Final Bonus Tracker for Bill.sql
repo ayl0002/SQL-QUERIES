@@ -1,4 +1,4 @@
-use reverse_dw
+use db1
 --- JULY POP 
 
 select final2.*, case when mca_percent < 97.5 and [Next Month MCA] >= 97.5 then 'Y' else 'N' end as 'Will Roll to Assignable' into  ##julypop from 
@@ -13,23 +13,23 @@ when mca_percent < 97 then 'Segment 2'
 when mca_percent < 97.5 then 'Segment 2B'
 when mca_percent < 100 then 'Segment 3A'
 else 'Segment 3B' end as MCA_Bucket, prop_state, [PROP_ZIP_CODE] as 'Zip_Code'
- from [dbo].[RM_CHAMPION_MASTER_TBL_VW]('2020-03-31',20200331) where 
+ from tbl1('2020-03-31',20200331) where 
 status_code = 0 and mca_percent >= 89 and mip_rate > 0 and
 
 pool_name not in ('BOAHOLDOVER','BOAWarehouse','NSBOA Warehouse','NSBOAWarehouse')) base
  left join
    
-(select loan_key, [MTH_SRVC_FEE_AMT] from [dbo].[RVRS_LOAN_BAL] where curr_ind = 'Y') msv on base.loan_key=msv.loan_key 
+(select loan_key, [MTH_SRVC_FEE_AMT] from tbl2 where curr_ind = 'Y') msv on base.loan_key=msv.loan_key 
 
 left join
 (select a.[Loan Number], b.[group], b.[Tag_2_Val], b.[Incurable Flag] from
-(select [Loan Number], max(eff_dttm) as 'Effective Date' from rm_dmart01.dbo.dm_hud_dim(nolock)
+(select [Loan Number], max(eff_dttm) as 'Effective Date' from tbl3(nolock)
 where eff_dttm < '2020-04-01'
  group by [Loan Number]) a
 left join
 (select [Loan Number], eff_dttm, [Group] ,[HUD Assigned Loans Tag2] as [TAG_2_VAL]
                            ,[Incurable Flag] 
-                     from RM_DMART01.dbo.dm_hud_dim(nolock)) b on a.[Loan Number]=b.[Loan Number] and a.[Effective Date]=b.eff_dttm ) hld on cast(base.loan_nbr as varchar)=hld.[loan number]) final ) final2
+                     from tbl3(nolock)) b on a.[Loan Number]=b.[Loan Number] and a.[Effective Date]=b.eff_dttm ) hld on cast(base.loan_nbr as varchar)=hld.[loan number]) final ) final2
 					  where (final2.tag_2_val not in ('HOLD', 'Servicer Cure', 'Finance HOLD', 'FNMA Finance Hold') or final2.tag_2_val is null)  and (final2.[group] <> 'Grp 5 BofA GNMAs' or final2.[group] is null) and [incurable flag] not in ('1.00000000000000', '2.00000000000000', '3.00000000000000', '4.00000000000000', '5.00000000000000','6.00000000000000', '7.00000000000000') 
 
 -------------------------- Georgia and Shawn Pop
@@ -45,23 +45,23 @@ when mca_percent < 97 then 'Segment 2'
 when mca_percent < 97.5 then 'Segment 2B'
 when mca_percent < 100 then 'Segment 3A'
 else 'Segment 3B' end as MCA_Bucket, prop_state, [PROP_ZIP_CODE] as 'Zip_Code'
- from [dbo].[RM_CHAMPION_MASTER_TBL_VW]('2020-03-31',20200331) where 
+ from tbl1('2020-03-31',20200331) where 
 status_code = 0 and mca_percent between 89 and 96.99 and mip_rate > 0 and
 
 pool_name not in ('BOAHOLDOVER','BOAWarehouse','NSBOA Warehouse','NSBOAWarehouse')) base
  left join
    
-(select loan_key, [MTH_SRVC_FEE_AMT] from [dbo].[RVRS_LOAN_BAL] where curr_ind = 'Y') msv on base.loan_key=msv.loan_key 
+(select loan_key, [MTH_SRVC_FEE_AMT] from tbl2 where curr_ind = 'Y') msv on base.loan_key=msv.loan_key 
 
 left join
 (select a.[Loan Number], b.[group], b.[Tag_2_Val], b.[Incurable Flag] from
-(select [Loan Number], max(eff_dttm) as 'Effective Date' from rm_dmart01.dbo.dm_hud_dim(nolock)
+(select [Loan Number], max(eff_dttm) as 'Effective Date' from tbl3(nolock)
 where eff_dttm < '2020-04-01'
  group by [Loan Number]) a
 left join
 (select [Loan Number], eff_dttm, [Group] ,[HUD Assigned Loans Tag2] as [TAG_2_VAL]
                            ,[Incurable Flag] 
-                     from RM_DMART01.dbo.dm_hud_dim(nolock)) b on a.[Loan Number]=b.[Loan Number] and a.[Effective Date]=b.eff_dttm ) hld on cast(base.loan_nbr as varchar)=hld.[loan number]) final ) final2
+                     from tbl3(nolock)) b on a.[Loan Number]=b.[Loan Number] and a.[Effective Date]=b.eff_dttm ) hld on cast(base.loan_nbr as varchar)=hld.[loan number]) final ) final2
 					  where (final2.tag_2_val not in ('HOLD', 'Servicer Cure', 'Finance HOLD', 'FNMA Finance Hold') or final2.tag_2_val is null)  and (final2.[group] <> 'Grp 5 BofA GNMAs' or final2.[group] is null) and [incurable flag] not in ('1.00000000000000', '2.00000000000000', '3.00000000000000', '4.00000000000000', '5.00000000000000','6.00000000000000', '7.00000000000000') 
 
 
@@ -76,14 +76,14 @@ into ##Taxeom1
  from
 (select a.[loan_nbr], a.[excp_id], b.doc_desc, b.issu_desc, b.excp_sts_desc, b.excp_rqst_dttm, datediff(day,[EXCP_RQST_DTTM],'2020-04-01') as 'Days Open'
 from
-(select loan_nbr, excp_id, max(eff_dttm) as 'Eff Date' from [dbo].[HUD_ASGN_EXCP_EDW]
+(select loan_nbr, excp_id, max(eff_dttm) as 'Eff Date' from tbl4
 where doc_desc = 'Tax Bill'  and eff_dttm < '2020-04-01' and excp_id is not null and loan_nbr is not null and doc_desc is not null group by loan_nbr, excp_id ) a
 left join
-(select loan_nbr, doc_desc, issu_desc, excp_id, eff_dttm, excp_sts_desc, excp_rqst_dttm from [dbo].[HUD_ASGN_EXCP_EDW]
+(select loan_nbr, doc_desc, issu_desc, excp_id, eff_dttm, excp_sts_desc, excp_rqst_dttm from tbl4
 ) b on a.loan_nbr=b.loan_nbr and a.excp_id=b.excp_id and a.[eff date]=b.eff_dttm 
 )final
 left join
-(select loan_nbr, case when mca_percent >= 97.5 then 'Y' else 'N' end as 'Valid 2B' from [dbo].[RM_CHAMPION_MASTER_TBL_CURR_VW]) mcan on final.loan_nbr=cast(mcan.loan_nbr as varchar)
+(select loan_nbr, case when mca_percent >= 97.5 then 'Y' else 'N' end as 'Valid 2B' from tbl5) mcan on final.loan_nbr=cast(mcan.loan_nbr as varchar)
 where [EXCP_STS_DESC] not in ('Closed with Vendor', 'Resolved by ML', 'Resolved', 'Not Valid', 'Cancelled', 'Incurable')
 --------------------------------------------------------------------------------
 -- Starting Emiliya Base
@@ -96,15 +96,15 @@ into  ##emyeom1
  from
 (select a.[loan_nbr], a.[excp_id], b.doc_desc, b.issu_desc, b.excp_sts_desc, b.excp_asgn_to_desc, b.excp_rqst_dttm, datediff(day,[EXCP_RQST_DTTM],'2020-04-01') as 'Days Open'
 from
-(select loan_nbr, excp_id, max(eff_dttm) as 'Eff Date' from [dbo].[HUD_ASGN_EXCP_EDW]
+(select loan_nbr, excp_id, max(eff_dttm) as 'Eff Date' from tbl4
 where doc_desc in ('Trust', 'Trust - HACG', 'Death Cert HACG', 'POA', 'Signed Pay Plan', 'Proof of Repair', 'MIC', 'Death Cert', 'Life Estate') --and excp_asgn_to_desc = 'Emiliya Ivanova' 
 and eff_dttm < '2020-04-01' and excp_id is not null and loan_nbr is not null and doc_desc is not null group by loan_nbr, excp_id ) a
 left join
-(select loan_nbr, doc_desc, issu_desc, excp_id, eff_dttm, excp_sts_desc, excp_rqst_dttm, excp_asgn_to_desc from [dbo].[HUD_ASGN_EXCP_EDW]
+(select loan_nbr, doc_desc, issu_desc, excp_id, eff_dttm, excp_sts_desc, excp_rqst_dttm, excp_asgn_to_desc from tbl4
 ) b on a.loan_nbr=b.loan_nbr and a.excp_id=b.excp_id and a.[eff date]=b.eff_dttm 
 )final
 left join
-(select loan_nbr, case when mca_percent >= 97.5 then 'Y' else 'N' end as 'Valid 2B' from [dbo].[RM_CHAMPION_MASTER_TBL_CURR_VW]) mcan on final.loan_nbr=cast(mcan.loan_nbr as varchar)
+(select loan_nbr, case when mca_percent >= 97.5 then 'Y' else 'N' end as 'Valid 2B' from tbl5) mcan on final.loan_nbr=cast(mcan.loan_nbr as varchar)
 where [EXCP_STS_DESC] not in ('Closed with Vendor', 'Resolved', 'Resolved by ML', 'Not Valid', 'Cancelled', 'Incurable') and excp_asgn_to_desc = 'Emiliya Ivanova'
 --------------
 -- Starting Georgia Base 
@@ -117,18 +117,19 @@ into  ##georgiaeom1
  from
 (select a.[loan_nbr], [eff date], a.[excp_id], b.doc_desc, b.issu_desc, b.excp_sts_desc, b.excp_rqst_dttm, excp_asgn_to_desc, datediff(day,[EXCP_RQST_DTTM],'2020-04-01') as 'Days Open'
 from
-(select loan_nbr, excp_id, max(eff_dttm) as 'Eff Date' from [dbo].[HUD_ASGN_EXCP_EDW]
+(select loan_nbr, excp_id, max(eff_dttm) as 'Eff Date' from tbl4
 where doc_desc in ('Trust', 'Trust - HACG', 'Death Cert HACG', 'POA', 'Signed Pay Plan', 'Proof of Repair', 'MIC', 'Death Cert', 'Life Estate')  and eff_dttm < '2020-04-01' and excp_id is not null and loan_nbr is not null and doc_desc is not null group by loan_nbr, excp_id ) a
 left join
-(select loan_nbr, doc_desc, issu_desc, excp_id, eff_dttm, excp_sts_desc, excp_rqst_dttm, excp_asgn_to_desc from [dbo].[HUD_ASGN_EXCP_EDW]
+(select loan_nbr, doc_desc, issu_desc, excp_id, eff_dttm, excp_sts_desc, excp_rqst_dttm, excp_asgn_to_desc from tbl4
 ) b on a.loan_nbr=b.loan_nbr and a.excp_id=b.excp_id and a.[eff date]=b.eff_dttm 
 )final
 left join
-(select loan_nbr, case when mca_percent >= 97.5 then 'Y' else 'N' end as 'Valid 2B' from [dbo].[RM_CHAMPION_MASTER_TBL_CURR_VW]) mcan on final.loan_nbr=cast(mcan.loan_nbr as varchar)
+(select loan_nbr, case when mca_percent >= 97.5 then 'Y' else 'N' end as 'Valid 2B' from tbl5) mcan on final.loan_nbr=cast(mcan.loan_nbr as varchar)
 where [EXCP_STS_DESC] not in ('Closed with Vendor', 'Resolved', 'Resolved by ML', 'Not Valid', 'Cancelled', 'Incurable') and excp_asgn_to_desc = 'Georgia Rowe'
 
 
--- Starting HOABase select * from ##hoaeom1
+-- Starting HOABase 
+select * from ##hoaeom1
 select final.*, [valid 2B],case when DATEDIFF(day,excp_rqst_dttm,'2020-04-01')  < 16 then '1-15 Days'
 when DATEDIFF(day,excp_rqst_dttm,'2020-04-01')  < 31 then '16-30 Days'
 when DATEDIFF(day,excp_rqst_dttm,'2020-04-01')  < 61 then '31-60 Days'
@@ -138,14 +139,14 @@ into ##HOAeom1
  from
 (select a.[loan_nbr], a.[excp_id], b.doc_desc, b.issu_desc, b.excp_sts_desc, b.excp_rqst_dttm, datediff(day,[EXCP_RQST_DTTM],'2020-04-01') as 'Days Open'
 from
-(select loan_nbr, excp_id, max(eff_dttm) as 'Eff Date' from [dbo].[HUD_ASGN_EXCP_EDW]
+(select loan_nbr, excp_id, max(eff_dttm) as 'Eff Date' from tbl4
 where doc_desc = 'HOA'  and eff_dttm < '2020-04-01' and excp_id is not null and loan_nbr is not null and doc_desc is not null group by loan_nbr, excp_id ) a
 left join
-(select loan_nbr, doc_desc, issu_desc, excp_id, eff_dttm, excp_sts_desc, excp_rqst_dttm from [dbo].[HUD_ASGN_EXCP_EDW]
+(select loan_nbr, doc_desc, issu_desc, excp_id, eff_dttm, excp_sts_desc, excp_rqst_dttm from tbl4
 ) b on a.loan_nbr=b.loan_nbr and a.excp_id=b.excp_id and a.[eff date]=b.eff_dttm 
 )final
 left join
-(select loan_nbr, case when mca_percent >= 97.5 then 'Y' else 'N' end as 'Valid 2B' from [dbo].[RM_CHAMPION_MASTER_TBL_CURR_VW]) mcan on final.loan_nbr=cast(mcan.loan_nbr as varchar)
+(select loan_nbr, case when mca_percent >= 97.5 then 'Y' else 'N' end as 'Valid 2B' from tbl5) mcan on final.loan_nbr=cast(mcan.loan_nbr as varchar)
 where [EXCP_STS_DESC] not in ('Closed with Vendor', 'Resolved', 'Resolved by ML', 'Not Valid', 'Cancelled', 'Incurable')
 -- Starting OCC Cert Base
 
@@ -158,18 +159,18 @@ into  ##OCCeom1
  from
 (select a.[loan_nbr], a.[excp_id], b.doc_desc, b.issu_desc, b.excp_sts_desc, b.excp_rqst_dttm, datediff(day,[EXCP_RQST_DTTM],'2020-04-01') as 'Days Open'
 from
-(select loan_nbr, excp_id, max(eff_dttm) as 'Eff Date' from [dbo].[HUD_ASGN_EXCP_EDW]
+(select loan_nbr, excp_id, max(eff_dttm) as 'Eff Date' from tbl4
 where doc_desc = 'Current OCC Cert'  and eff_dttm < '2020-04-01' and excp_id is not null and loan_nbr is not null and doc_desc is not null group by loan_nbr, excp_id ) a
 left join
-(select loan_nbr, doc_desc, issu_desc, excp_id, eff_dttm, excp_sts_desc, excp_rqst_dttm from [dbo].[HUD_ASGN_EXCP_EDW]
+(select loan_nbr, doc_desc, issu_desc, excp_id, eff_dttm, excp_sts_desc, excp_rqst_dttm from tbl4
 ) b on a.loan_nbr=b.loan_nbr and a.excp_id=b.excp_id and a.[eff date]=b.eff_dttm 
 )final
 left join
-(select loan_nbr, case when mca_percent >= 97.5 then 'Y' else 'N' end as 'Valid 2B' from [dbo].[RM_CHAMPION_MASTER_TBL_CURR_VW]) mcan on final.loan_nbr=cast(mcan.loan_nbr as varchar)
+(select loan_nbr, case when mca_percent >= 97.5 then 'Y' else 'N' end as 'Valid 2B' from tbl5) mcan on final.loan_nbr=cast(mcan.loan_nbr as varchar)
 where [EXCP_STS_DESC] not in ('Closed with Vendor', 'Resolved', 'Resolved by ML', 'Not Valid', 'Cancelled', 'Incurable')
 
 
 /*select * from ##georgiaeom1 where excp_id = '519168'
-select eff_dttm as 'eff date', * from [dbo].[HUD_ASGN_EXCP_EDW] where excp_id = '519168'
+select eff_dttm as 'eff date', * from tbl4 where excp_id = '519168'
 order by eff_dttm desc*/
 
