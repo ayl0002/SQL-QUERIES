@@ -12,11 +12,11 @@ END AS 'MCA_Bucket'
 ELSE 0
 END AS 'CrossOver Amount'
 FROM tbl1 A
-INNER JOIN [VRSQLRODS\RODS_PROD].REVERSE_DW.[dbo].[RM_CHAMPION_MASTER_TBL_CURR_VW] B
+INNER JOIN tbl2 B
 	ON A.[Loan Number] = B.LOAN_NBR
 LEFT JOIN (SELECT [LOAN NUMBER],COUNT([LOAN NUMBER]) AS 'Incurable Count' FROM tbl1 WHERE [Incurable Flag] <> '0' GROUP BY [LOAN NUMBER]) C
 	ON A.[Loan Number] = C.[Loan Number]
-LEFT JOIN SharepointData.[dbo].[HUDAssignHUDStatus] D
+LEFT JOIN tbl3 D
 	ON A.[Loan Number] = D.[Loan Number]
 
 WHERE B.LOAN_STATUS = 'ACTIVE' AND ISNULL(A.[TAG 2],'No Tag') NOT IN ('SERVICER CURE','No Tag') AND isnull(B.[INVESTOR],'No Pool') = 'FNMA'
