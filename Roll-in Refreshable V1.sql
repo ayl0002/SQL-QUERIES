@@ -1,4 +1,4 @@
-select final.*, case when [exception 1] is null then [Distribution Tier] else 'Tier 2' end as 'Tier Distribution Group' from 
+select final.*, case when [exception 1] is null then [Distribution Tier] else 'Tier 2' end as 'Tier Distribution Group' from tbl2
 (select base.*, case when [tax due date] between '2020-04-10' and '2020-05-20' and [Tax Close Date] is not null and datediff(day,[Tax Close Date],getdate()) between 31 and 90
 and [has loss draft] = 'N' and [In Curative] = 'N' and [HAS FPI] = 'N'  and [Has Open OCC] = 'N' and [Has Open HOA] = 'N' and [Has FPI] = 'N'
 and [Has Loss Draft] = 'N' and [HAC Exceptions] is null 
@@ -27,25 +27,25 @@ exc1.document as [Exception 1], exc1.[issue] as [Issue 1]
 ,HS.[HUD Status]
  from  
 (select *
-from dbo.tierload5) base
+from tbl1) base
 left join
-(select [loan number],[Final Review Status],[Final Review Assigned To] from sharepointdata.[dbo].[HUDAssignFinalReview]) fnl on base.[loan_nbr]=fnl.[loan number]
+(select [loan number],[Final Review Status],[Final Review Assigned To] from tbl2) fnl on base.[loan_nbr]=fnl.[loan number]
 left join
-(select loan_nbr, max_claim_amount from tact_rev.dbo.champbase) cb on base.loan_nbr=cb.loan_nbr
+(select loan_nbr, max_claim_amount from tbl3) cb on base.loan_nbr=cb.loan_nbr
 left join
-(select [loan number], count(*) as 'HAC Exceptions' from sharepointdata.[dbo].[HUDAssignExceptions] where
+(select [loan number], count(*) as 'HAC Exceptions' from tbl4 where
 [work group] = 'HACG' and [exception status] not in ('Not Valid', 'Cancelled', 'Canceled', 'Closed with Vendor', 'Resolved', 'Incurable')
 group by [loan number]) cha on base.loan_nbr=cha.[loan number]
-LEFT JOIN SharepointData.[dbo].[HUDAssignHUDStatus] HS
+LEFT JOIN tbl5 HS
 ON base.loan_nbr = HS.[Loan Number]
 left join
-(select loan_nbr, [status_description],status_code from dbo.champbase) chb on base.loan_nbr=chb.loan_nbr
+(select loan_nbr, [status_description],status_code from tbl6) chb on base.loan_nbr=chb.loan_nbr
 
  left join
 
 (select * from 
 (select [loan number], document, [issue], [exception request date],[exception assigned to], row_number() over (partition by [loan number] order by  [exception request date] asc) as XRank
-from sharepointdata.[dbo].[HUDAssignExceptions]
+from tbl4
 where [exception status]  not in ('Closed with Vendor', 'Resolved', 'Not Valid', 'Cancelled', 'Incurable') and [work group] = 'HACG'
 ) exc1a where xrank = 1) exc1 on base.[loan_nbr]=exc1.[loan number]) final
 
