@@ -83,16 +83,16 @@ THEN (SELECT CAST(MIN(V) AS DATE) FROM (VALUES ([Gift Card Letter Sent]),([Gift 
 ELSE (SELECT CAST(MIN(V) AS DATE) FROM (VALUES ([Gift Card Letter Sent]),([Gift Card Letter Sent 2]),	([Gift Card Letter Sent 3])) AS VALUE (V)) 
 END AS 'Min Letter Date'
 INTO #BASE
-FROM SHAREPOINTDATA.dbo.HUDAssignLoans A
-LEFT JOIN SHAREPOINTDATA.dbo.HUDAssignFinalReview B
+FROM tbl1 A
+LEFT JOIN tbl2 B
 ON a.[LOAN NUMBER]=b.[LOAN NUMBER]
-LEFT JOIN (SELECT [LOAN NUMBER],[EXCEPTION ID],[DOCUMENT],[ISSUE], [EXCEPTION ASSIGNED TO],[EXCEPTION REQUEST DATE],[EXCEPTION STATUS],[EXCEPTION STATUS DATE],[Exception Status Updated By],[Gift Card Letter Sent],[Gift Card Letter Sent 2],	[Gift Card Letter Sent 3],[Ledger Letter Sent 1],[Ledger Letter Sent 2],[Ledger Letter Sent 3],[Non GC Letter Sent 1],[Non GC Letter Sent 2],[Non GC Letter Sent 3] FROM SHAREPOINTDATA.DBO.HUDASSIGNEXCEPTIONS WHERE [Document] IN ('Trust - HACG','Trust','Current OCC Cert','HOA','Death Cert HACG','Death Cert','Proof of Repair') AND [EXCEPTION STATUS] NOT IN ('RESOLVED','CLOSED','NOT VALID','CLOSED WITH VENDOR')) E
+LEFT JOIN (SELECT [LOAN NUMBER],[EXCEPTION ID],[DOCUMENT],[ISSUE], [EXCEPTION ASSIGNED TO],[EXCEPTION REQUEST DATE],[EXCEPTION STATUS],[EXCEPTION STATUS DATE],[Exception Status Updated By],[Gift Card Letter Sent],[Gift Card Letter Sent 2],	[Gift Card Letter Sent 3],[Ledger Letter Sent 1],[Ledger Letter Sent 2],[Ledger Letter Sent 3],[Non GC Letter Sent 1],[Non GC Letter Sent 2],[Non GC Letter Sent 3] FROM tbl3 WHERE [Document] IN ('Trust - HACG','Trust','Current OCC Cert','HOA','Death Cert HACG','Death Cert','Proof of Repair') AND [EXCEPTION STATUS] NOT IN ('RESOLVED','CLOSED','NOT VALID','CLOSED WITH VENDOR')) E
 ON A.[LOAN NUMBER]=E.[Loan Number]
-LEFT JOIN SHAREPOINTDATA.DBO.HUDASSIGNHUDSTATUS C
+LEFT JOIN tbl4 C
 ON a.[LOAN NUMBER]=c.[LOAN NUMBER]
-LEFT JOIN SHAREPOINTDATA.DBO.HUDAssignLoanExceptionTotals T
+LEFT JOIN tbl5 T
 on a.[Loan Number]=T.[Loan Number]
-left join [VRSQLRODS\RODS_PROD].reverse_dw.[dbo].[TP_HUD_RSTR] r
+left join tbl6 r
 on c.[HUD Assigned To]=r.agnt_nm
 
 WHERE a.[Loan Status] in ('Active') AND A.[Tag 2] is NULL AND A.[Incurable Flag] in ('0') AND (a.[Group] in ('Grp 1 NSM Balance Sheet','Grp 2 FNMA','Grp 3 GNMA excl BofA','Grp 4 Trust / Private exlc BofA','Grp 4 Trust / Private exlc BofA') or
@@ -118,9 +118,9 @@ END AS 'Invalid_Flag'
 
 INTO #INVALID
  FROM #BASE B
- LEFT JOIN Tact_Rev.DBO.HACGInvalidFileNet C
+ LEFT JOIN tbl7 C
 	ON B.[Loan Number] = C.Loan_Nbr
- LEFT JOIN [VRSQLRODS\RODS_PROD].[Reverse_DW].[dbo].[TP_FILENET_DOCVER] D
+ LEFT JOIN tbl8 D
 	ON B.[Loan Number] = Replace(ltrim(replace(D.[U03D8_NSM_LOAN_NBR],'0',' ')),' ','0') 
 
 WHERE  D.[U3FC8_DOC_TYPE_CD] = Excp_FN_Code OR ISNULL(Por_FN_Code_2 ,'NOTPOREXCEPTION') = D.[U3FC8_DOC_TYPE_CD]
@@ -140,17 +140,17 @@ WHERE B.CRE_DT = Valid_DT AND B.CRE_DT > ISNULL(Invalid_DT,CAST('1/1/1900' AS DA
 
 ORDER BY [Document],[MCA %] DESC
 
-/*
+
 --FN Scrub--
 SELECT B.[Loan Number]
- FROM SHAREPOINTDATA.dbo.HUDAssignLoans A
+ FROM tbl1 A
  JOIN #BASE B
 	ON A.[Loan Number] = B.[Loan Number]
  LEFT JOIN #INVALID C
 	ON B.[Loan Number] = C.Loan_Nbr
- LEFT JOIN [VRSQLRODS\RODS_PROD].[Reverse_DW].[dbo].[TP_FILENET_DOCVER] D
+ LEFT JOIN tbl8 D
 	ON C.Loan_Nbr = Replace(ltrim(replace(D.[U03D8_NSM_LOAN_NBR],'0',' ')),' ','0') 
-*/
+
 
 
 DROP TABLE #BASE,#INVALID
