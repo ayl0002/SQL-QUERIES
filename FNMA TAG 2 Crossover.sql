@@ -11,10 +11,10 @@ END AS 'MCA_Bucket'
 ,CASE WHEN B.MCA_PERCENT >= 100 THEN [CURRENT_TOTAL_UPB] - [MAX_CLAIM_AMOUNT] 
 ELSE 0
 END AS 'CrossOver Amount'
-FROM SharepointData.Dbo.HUDAssignLoans A
+FROM tbl1 A
 INNER JOIN [VRSQLRODS\RODS_PROD].REVERSE_DW.[dbo].[RM_CHAMPION_MASTER_TBL_CURR_VW] B
 	ON A.[Loan Number] = B.LOAN_NBR
-LEFT JOIN (SELECT [LOAN NUMBER],COUNT([LOAN NUMBER]) AS 'Incurable Count' FROM SharepointData.Dbo.HUDAssignLoans WHERE [Incurable Flag] <> '0' GROUP BY [LOAN NUMBER]) C
+LEFT JOIN (SELECT [LOAN NUMBER],COUNT([LOAN NUMBER]) AS 'Incurable Count' FROM tbl1 WHERE [Incurable Flag] <> '0' GROUP BY [LOAN NUMBER]) C
 	ON A.[Loan Number] = C.[Loan Number]
 LEFT JOIN SharepointData.[dbo].[HUDAssignHUDStatus] D
 	ON A.[Loan Number] = D.[Loan Number]
